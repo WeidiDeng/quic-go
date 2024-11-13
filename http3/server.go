@@ -649,6 +649,11 @@ func (s *Server) handleRequest(conn *connection, str quic.Stream, datagrams *dat
 	if _, ok := req.Header["Content-Length"]; ok && req.ContentLength >= 0 {
 		contentLength = req.ContentLength
 	}
+	// set content length to 0 for GET and HEAD requests when content length isn't declared
+	if (req.Method == http.MethodGet || req.Method == http.MethodHead) && contentLength == -1 {
+		contentLength = 0
+		req.ContentLength = 0
+	}
 	hstr := newStream(str, conn, datagrams, nil)
 	body := newRequestBody(hstr, contentLength, conn.Context(), conn.ReceivedSettings(), conn.Settings)
 	req.Body = body
